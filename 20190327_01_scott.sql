@@ -704,13 +704,273 @@ FROM TBL_EMP;
 */
 
 
+--○ NVL2()
+--> 첫 번째 파라미터 값이 NULL 이 아닌 경우, 두 번째 파라미터 값을 반환하고
+--  첫 번째 파라미터 값이 NULL 인 경우, 세 번째 파라미터 값을 반환한다.
+SELECT ENAME, COMM, NVL2(COMM, '청기올려', '백기올려')"확인여부"
+FROM TBL_EMP;
+--==>> 
+/*
+SMITH		    백기올려 --
+ALLEN	300	    청기올려
+WARD	500	    청기올려
+JONES		    백기올려 --
+MARTIN	1400	청기올려
+BLAKE		    백기올려 --
+CLARK		    백기올려 --
+SCOTT		    백기올려 --
+KING		    백기올려 --
+TURNER	0	    청기올려
+ADAMS		    백기올려 --
+JAMES		    백기올려 --
+FORD		    백기올려 --
+MILLER		    백기올려 --
+*/
+
+SELECT EMPNO "사원번호", ENAME "사원명", SAL "급여", NVL2(COMM, COMM, 0) "커미션", NVL2(COMM, SAL*12+COMM, SAL*12) "연봉"
+FROM TBL_EMP;
+--==>>
+/*
+7369	SMITH	800	    0	     9600
+7499	ALLEN	1600	300	    19500
+7521	WARD	1250	500	    15500
+7566	JONES	2975	0	    35700
+7654	MARTIN	1250	1400	16400
+7698	BLAKE	2850	0	    34200
+7782	CLARK	2450	0	    29400
+7788	SCOTT	3000	0	    36000
+7839	KING	5000	0	    60000
+7844	TURNER	1500	0	    18000
+7876	ADAMS	1100	0	    13200
+7900	JAMES	950 	0	    11400
+7902	FORD	3000	0	    36000
+7934	MILLER	1300	0	    15600
+*/
 
 
+--○ COALESCE()
+--> 매개변수 제한이 없는 형태로 인지하고 활용한다.
+--  맨 앞에 있는 매개변수부터 차례로 NULL 인지 아닌지 확인하여
+--  NULL 이 아닐경우 적용(반환, 처리)하고,
+--  NULL 인 경우에는 그 다음 매개변수의 값으로 적용(반환, 처리)한다.
+--  NVL() 나 NVL2() 에 비해 모든 경우의 수를 고려할 수 있는 특징을 갖고 있다.
+SELECT NULL "기본확인"
+    , COALESCE(NULL, NULL, NULL, 30) "함수 확인1"
+    , COALESCE(NULL, NULL, NULL, NULL, NULL, NULL, 100) "함수 확인2"
+    , COALESCE(10, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 100) "함수 확인3"
+    , COALESCE(NULL, NULL, 80, NULL, NULL, NULL, NULL, NULL, 100) "함수 확인4"
+FROM DUAL;
 
 
+--○ 실습을 위한 데이터 입력
+INSERT INTO TBL_EMP(EMPNO, ENAME, JOB, MGR, HIREDATE, DEPTNO)
+VALUES(8000, '승워니', 'SALEMAN', 7839, SYSDATE, 10);
+--==>> 1 행 이(가) 삽입되었습니다.
+
+INSERT INTO TBL_EMP(EMPNO, ENAME, JOB, MGR, HIREDATE, COMM, DEPTNO)
+VALUES(8001, '희지니', 'SALESMAN', 7839, SYSDATE, 100, 10);
+--==>> 1 행 이(가) 삽입되었습니다.
+
+ROLLBACK;   -- 데이터 수정하기 위해...
+
+INSERT INTO TBL_EMP(EMPNO, ENAME, JOB, MGR, HIREDATE, DEPTNO)
+VALUES(8000, '승워니', 'SALESMAN', 7839, SYSDATE, 10);
+--==>> 1 행 이(가) 삽입되었습니다.
+
+INSERT INTO TBL_EMP(EMPNO, ENAME, JOB, MGR, HIREDATE, COMM, DEPTNO)
+VALUES(8001, '희지니', 'SALESMAN', 7839, SYSDATE, 100, 10);
+--==>> 1 행 이(가) 삽입되었습니다.
+
+ALTER TABLE TBL_EMP
+DROP COLUMN YEAR;       --YEAR 컬럼 삭제
+
+SELECT *
+FROM TBL_EMP;
+
+COMMIT;
+--==>> 커밋 완료.
+
+SELECT EMPNO "사원번호", ENAME "사원명", SAL "급여", COMM "커미션", SAL*12 + NVL(COMM, 0) "연봉"
+FROM TBL_EMP;
+
+SELECT EMPNO "사원번호", ENAME "사원명", SAL "급여", COMM "커미션", COALESCE((SAL*12 +COMM), (COMM), (SAL*12), 0) "연봉"
+FROM TBL_EMP;
+--==>>
+/*
+7369	SMITH	 800	         9600
+7499	ALLEN	1600	 300	19500
+7521	WARD	1250	 500    15500
+7566	JONES	2975		    35700
+7654	MARTIN	1250	1400	16400
+7698	BLAKE	2850		    34200
+7782	CLARK	2450		    29400
+7788	SCOTT	3000		    36000
+7839	KING	5000		    60000
+7844	TURNER	1500	   0    18000
+7876	ADAMS	1100		    13200
+7900	JAMES	 950	        11400
+7902	FORD	3000		    36000
+7934	MILLER	1300		    15600
+8000	승워니			            0
+8001	희지니		      100	  100
+*/
 
 
+-----------------------------------------------------------------------------------------------------------
 
+--※ 날짜에 대한 세션 설정 변경
+ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS';
+--==>> Session이(가) 변경되었습니다.
+
+
+--○ 현재 날짜 및 시간을 반환하는 함수
+SELECT SYSDATE, CURRENT_DATE, LOCALTIMESTAMP
+FROM DUAL;
+--==>>
+/*
+2019-03-27 15:45:55	
+2019-03-27 15:45:55	
+19/03/27 15:45:55.000000000
+*/
+
+
+--※ 날짜에 대한 세션 설정 정보 다시 변경하기
+ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+--==>> Session이(가) 변경되었습니다.
+
+
+--○ 컬럼과 컬럼의 연결(결합)
+--   문자타입과 문자타입의 연결
+--   『+』 연산자를 통한 결합 수행은 불가능 → 『||』
+SELECT 1+1
+FROM DUAL;
+--==>> 2
+
+SELECT '이원영' + '전훈의'
+FROM DUAL;
+--==>> 에러 발생
+/*
+ORA-01722: invalid number
+01722. 00000 -  "invalid number"
+*Cause:    The specified number was invalid.
+*Action:   Specify a valid number.
+*/
+
+SELECT '이원영', '전훈의'
+FROM DUAL;
+--==>> 이원영	전훈의
+
+SELECT '이원영' || '전훈의'
+FROM DUAL;
+--==>> 이원영전훈의
+
+SELECT EMPNO, ENAME
+FROM TBL_EMP;
+--==>>
+/*
+7369	SMITH
+7499	ALLEN
+7521	WARD
+7566	JONES
+7654	MARTIN
+7698	BLAKE
+7782	CLARK
+7788	SCOTT
+7839	KING
+7844	TURNER
+7876	ADAMS
+7900	JAMES
+7902	FORD
+7934	MILLER
+8000	승워니
+8001	희지니
+*/
+
+SELECT EMPNO || ENAME
+FROM TBL_EMP;
+/*
+7369SMITH
+7499ALLEN
+7521WARD
+7566JONES
+7654MARTIN
+7698BLAKE
+7782CLARK
+7788SCOTT
+7839KING
+7844TURNER
+7876ADAMS
+7900JAMES
+7902FORD
+7934MILLER
+8000승워니
+8001희지니
+*/
+
+--      문자타입   날짜타입  문자타입 숫자타입 문자타입
+--     ----------  -------  ----------  ---  --------------
+SELECT '원영이는', SYSDATE, '에 연봉 ', 500, '억을 원한다.'
+FROM DUAL;
+--==>> 원영이는	2019-03-27	에 연봉 	500	억을 원한다.
+
+--      문자타입    날짜타입     문자타입   숫자타입   문자타입
+--     ----------    -------    ----------    ---    --------------
+SELECT '원영이는' || SYSDATE || '에 연봉 ' || 500 || '억을 원한다.'
+FROM DUAL;
+--==>> 원영이는2019-03-27에 연봉 500억을 원한다.
+
+--※ 오라클에서 문자 타입의 형태로 형 변환하는 별도의 과정 없이
+--   위에서 처리한 내용 처럼 『||』만 삽입해주면 간단히 컬럼과 컬럼을
+--   (서로 다른 종류의 데이터) 결합하는 것이 가능하다.
+--   MYSQL 에서는 모든 데이터를 문자타입으로 CONVERT 해야 한다.
+
+
+--○ TBL_EMP 테이블의 정보를 활용하여
+--   모든 직원들의 데이터에 대하여
+--   다음과 같은 결과를 얻을 수 있도록 쿼리문을 구성한다.
+
+--   SMITH 의 현재 연봉은 9600인데 희망 연봉은 19200이다.
+--   ALLEN 의 현재 연봉은 19500인데 희망 연봉은 39000이다.
+--                         :
+
+
+SELECT *
+FROM TBL_EMP
+WHERE EMPNO IN (8000, 8001);
+
+DELETE
+FROM TBL_EMP
+WHERE EMPNO IN (8000, 8001);
+--==>> 2개 행 이(가) 삭제되었습니다.
+
+COMMIT;
+--==>> 커밋 완료.
+
+--방식1
+SELECT ENAME || ' 의 현재 연봉은 ' || NVL(SAL*12 +COMM, SAL*12) || '인데 희망 연봉은 ' || NVL((SAL*12 +COMM), SAL*12)*2 || '이다.'
+FROM TBL_EMP;
+
+--방식2
+SELECT ENAME || ' 의 현재 연봉은 ' || NVL2(COMM, SAL*12 +COMM, SAL*12) || '인데 희망 연봉은 ' || NVL2(COMM, (SAL*12 +COMM), SAL*12)*2 || '이다.'
+FROM TBL_EMP;
+
+--방식3
+SELECT ENAME || ' 의 현재 연봉은 ' || COALESCE((SAL*12 +COMM), (COMM), (SAL*12), 0) || '인데 희망 연봉은 ' || COALESCE((SAL*12 +COMM), (COMM), (SAL*12), 0)*2 || '이다.'
+FROM TBL_EMP;
+
+
+-- SMITH's 입사일은 1980-12-17 이다. 그리고 급여는 800이다.
+-- ALLEN's 입사일은 1981-02-20 이다. 그리고 급여는 1600이다.
+--                      :
+
+SELECT ENAME || '''s 입사일은 ' || HIREDATE || ' 이다. 그리고 급여는 ' || SAL || '이다.'
+FROM TBL_EMP;
+
+--※ 문자열을 나타내는 홑따옴표 사이에서(시작과 끝)
+--   홑따옴표 두 개가 홑따옴표 하나(어퍼스트로피)를 의미한다.
+--   홑따옴표 『'』하나는 문자열의 시작을 나타내고
+--   홑따옴표 『''』두 개는 문자열 영역 안에서 어퍼스트로피를 나타내며
+--   다시 등장하는 홑따옴표 『'』하나가 문자열 영역의 종료를 의미하게 되는 것이다.
 
 
 

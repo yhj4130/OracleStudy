@@ -147,3 +147,179 @@ ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
 
 
 < 2019.3.29 >
+
+○ ROUND() 반올림을 처리해주는 함수
+
+○ TRUNC() 절삭을 처리해주는 함수
+
+○ MOD() 나머지를 반환하는 함수
+
+○ POWER() 제곱의 결과를 반환하는 함수
+
+○ SQRT() 루트 결과값을 반환하는 함수
+
+○ LOG() 로그 함수
+--   (※ 오라클은 상용로그만 지원하는 반면, MYSQL 은 상용로그, 자연로그 모두 지원한다.
+
+○ 삼각 함수
+--   싸인, 코싸인, 탄젠트 결과값을 반환한다.
+
+○ 삼각함수의 역함수 (범위 : -1 ~ 1)
+--   어싸인, 어코싸인, 어탄젠트 결과값을 반환한다.
+
+○ SIGN()      서명, 부호, 특징
+-->  연산 결과가 양수이면 1, 0이면 0, 음수이면 -1을 반환한다.
+
+○ ASCII(), CHR() → 서로 상응하는 개념의 함수
+SELECT ASCII('A'), CHR(65)
+FROM DUAL;
+--==>> 65	A
+--> ASCII() : 매개변수로 넘겨받은 문자의 아스키코드 값을 반환한다.
+--  CHR()   : 매개변수로 넘겨받은 숫자를 아스키코드 값으로 취하는 문자를 반환한다.
+
+
+※ 날짜 연산의 기본 단위는 DAY(일수)이다!!
+
+
+○ 현재 시간과 현재 시간 기준 1일 2시간 3분 4초 후를 조회한다.
+SELECT SYSDATE"현재 시간", SYSDATE +1 +2/24 + 3/24/60 + 4/24/60/60"연산 후 시간"
+FROM DUAL;
+/*
+현재 시간               연산 후 시간            
+------------------- -------------------
+2019-03-29 09:37:46 2019-03-30 11:40:50
+*/
+
+
+○ ADD_MONTHS() 개월 수를 더해주는 함수
+
+
+○ MONTHS_BETWEEN()
+-- 첫 번째 인자값에서 두 번째 인자값을 뺀 개월 수를 반환
+SELECT MONTHS_BETWEEN(SYSDATE, TO_DATE('2002-05-31', 'YYYY-MM-DD'))
+FROM DUAL;
+--==>> 201.949145385304659498207885304659498208
+
+
+○ NEXT_DAY()
+-- 첫 번째 인자값을 기준 날짜로 돌아오는 가장 빠른 요일 반환
+SELECT NEXT_DAY(SYSDATE,'토'), NEXT_DAY(SYSDATE, '월')
+FROM DUAL;
+--==>> 2019-03-30	2019-04-01
+
+
+-- 『93784』초를 다시 일, 시간, 분, 초로 환산하면
+SELECT MOD(93784, 60)
+FROM DUAL;
+--==>> 4
+
+SELECT TRUNC(TRUNC(TRUNC(93784/60)/60)/24)
+     , MOD(TRUNC(TRUNC(93784/60)/60), 24)
+     , MOD(TRUNC(93784/60), 60)
+     , MOD(93784, 60)
+FROM DUAL;
+--==>> 1	2	3	4
+
+
+SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD')   -- 2019-03-29
+     , TO_CHAR(SYSDATE, 'YYYY')         -- 2019             → 문자타입
+     , TO_CHAR(SYSDATE, 'YEAR')         -- TWENTY NINETEEN
+     , TO_CHAR(SYSDATE, 'MM')           -- 03
+     , TO_CHAR(SYSDATE, 'MONTH')        -- 3월 
+     , TO_CHAR(SYSDATE, 'MON')          -- 3월 
+     , TO_CHAR(SYSDATE, 'DD')           -- 29
+     , TO_CHAR(SYSDATE, 'DAY')          -- 금요일
+     , TO_CHAR(SYSDATE, 'DY')           -- 금
+     , TO_CHAR(SYSDATE, 'HH24')         -- 14
+     , TO_CHAR(SYSDATE, 'HH')           -- 02
+     , TO_CHAR(SYSDATE, 'HH AM')        -- 02 오후
+     , TO_CHAR(SYSDATE, 'HH PM')        -- 02 오후
+     , TO_CHAR(SYSDATE, 'MI')           -- 20
+     , TO_CHAR(SYSDATE, 'SS')           -- 27
+     , TO_CHAR(SYSDATE, 'SSSSS')        -- 51627            → 자정12시부터 지금까지의 흘러온 전체 초
+     , TO_CHAR(SYSDATE, 'Q')            -- 1                → 분기
+FROM DUAL;
+
+
+○ EXTRACT()
+SELECT TO_CHAR(SYSDATE, 'YYYY')     -- 2019 (좌측)    → 연도를 추출하여 문자타입으로
+     , TO_CHAR(SYSDATE, 'MM')       -- 03   (좌측)    → 월을 추출하여 문자타입으로
+     , TO_CHAR(SYSDATE, 'DD')       -- 29   (좌측)    → 일을 추출하여 문자타입으로
+     , EXTRACT(YEAR FROM SYSDATE)   -- 2019 (우측)    → 연도를 추출하여 숫자타입으로
+     , EXTRACT(MONTH FROM SYSDATE)  -- 3    (우측)    → 월을 추출하여 숫자타입으로
+     , EXTRACT(DAY FROM SYSDATE)    -- 29   (우측)    → 일을 추출하여 숫자타입으로
+FROM DUAL;
+--> 년, 월, 일 이하 다른 것은 불가
+
+
+○ TO_CHAR() 활용 → 형식 맞춤 표기 결과값 반환
+SELECT 60000                            -- 60000
+     , TO_CHAR(60000)                   -- 60000    (숫자 → 문자)
+     , TO_CHAR(60000, '99,999')         -- 60,000
+     , TO_CHAR(60000, '$99,999')        -- $60,000
+     , TO_CHAR(60000, 'L99,999')        --           \60,000  (원)
+     , LTRIM(TO_CHAR(60000, 'L99,999')) -- \60,000  (공백제거)
+FROM DUAL;
+
+
+○ 현재 시간을 기준으로 1년 2개월 3일 4시간 5분 6초 후를 조회한다.
+-- TO_YMINTERVAL(), TO_DSINTERVAL()
+SELECT SYSDATE"현재시각"
+    , SYSDATE + TO_YMINTERVAL('01-02') + TO_DSINTERVAL('003 04:05:06')"연산결과"
+FROM DUAL;
+--==>>
+/*
+2019-03-29 14:51:00	
+2020-06-01 18:56:06
+*/
+
+
+○ CASE 구문 (조건문, 분기문)
+/*
+CASE
+WHEN
+THEN
+ELSE
+END
+*/
+
+
+
+○ 문제
+-- TBL_SAWON 테이블을 활용하여 다음과 같은 항목들을 조회한다.
+-- 사원번호, 사원명, 주민번호, 성별, 현재나이, 입사일
+-- , 정년퇴직일, 근무일수, 남은일수, 급여, 보너스
+
+-- 단, 현재 나이는 한국나이 계산법에 따라 연산을 수행한다.
+-- 또한, 정년퇴직일은 해당 직원의 나이가 한국나이로 60세가 되는 해(년도)의 
+-- 그 직원의 입사, 월, 일로 연산을 수행한다.
+-- 그리고 보너스는 1000일 이상 2000일 미만 근무한 사원은
+-- 그 사원의 원래 급여 기준 30% 지급,
+-- 2000일 이상 근무한 사원은 그 사원의 원래 급여 기준 50% 지급을 할 수 있도록 처리한다.
+
+ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+--==>> Session이(가) 변경되었습니다.
+
+SELECT SANO"사원번호", SANAME"사원명", JUBUN"주민번호"
+     , CASE SUBSTR(JUBUN, 7, 1) WHEN '1' THEN '남자' WHEN '2' THEN '여자' WHEN '3' THEN '남자' WHEN '4' THEN '여자' END "성별"
+     , CASE WHEN SUBSTR(JUBUN, 1, 2)>0 AND SUBSTR(JUBUN, 1, 2)<10 THEN TO_CHAR(SYSDATE, 'YY')-SUBSTR(JUBUN, 1, 2) +1
+        ELSE TO_CHAR(SYSDATE, 'YY') - SUBSTR(JUBUN, 1, 2) +100 +1
+        END "현재 나이"
+     , HIREDATE"입사일"
+     , CASE WHEN SUBSTR(JUBUN, 1, 2)>0 AND SUBSTR(JUBUN, 1, 2)<10 THEN ADD_MONTHS(HIREDATE, (60 - (TO_CHAR(SYSDATE, 'YY')-SUBSTR(JUBUN, 1, 2) +1))*12 + (2019-EXTRACT(YEAR FROM HIREDATE))*12)
+        ELSE ADD_MONTHS(HIREDATE, (60-(TO_CHAR(SYSDATE, 'YY') - SUBSTR(JUBUN, 1, 2) +100 +1))*12 + (2019-EXTRACT(YEAR FROM HIREDATE))*12)
+        END "정년퇴직일"
+     , TRUNC(SYSDATE - HIREDATE)"근무일수"
+     , CASE WHEN SUBSTR(JUBUN, 1, 2)>0 AND SUBSTR(JUBUN, 1, 2)<10 THEN TRUNC(ADD_MONTHS(HIREDATE, (60 - (TO_CHAR(SYSDATE, 'YY')-SUBSTR(JUBUN, 1, 2) +1))*12 + (2019-EXTRACT(YEAR FROM HIREDATE))*12) - SYSDATE)
+        ELSE TRUNC(ADD_MONTHS(HIREDATE, (60-(TO_CHAR(SYSDATE, 'YY') - SUBSTR(JUBUN, 1, 2) +100 +1))*12 + (2019-EXTRACT(YEAR FROM HIREDATE))*12)-SYSDATE)
+        END "남은일수"
+     , SAL "급여"
+     , CASE WHEN TRUNC(SYSDATE-HIREDATE)<1000 THEN 0
+             WHEN TRUNC(SYSDATE-HIREDATE)>=1000 AND TRUNC(SYSDATE-HIREDATE)<2000 THEN SAL*0.3
+            ELSE SAL*0.5
+        END "보너스"
+FROM TBL_SAWON;
+
+
+
+

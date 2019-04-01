@@ -321,5 +321,16 @@ SELECT SANO"사원번호", SANAME"사원명", JUBUN"주민번호"
 FROM TBL_SAWON;
 
 
+< 2019.4.1 >
 
+** VIEW
+
+○ RANK() → 등수(순위)를 반환하는 함수
+SELECT EMPNO"사원번호", ENAME"사원명", DEPTNO"부서번호", SAL"급여"
+     , RANK() OVER(PARTITION BY DEPTNO ORDER BY SAL DESC)"부서내 급여순위"
+     , RANK() OVER(ORDER BY SAL DESC)"전체급여순위"
+
+○ DENSE_RANK() → 서열을 반환하는 함수
+FROM EMP
+ORDER BY 3, 4 DESC;
 

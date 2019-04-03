@@ -469,7 +469,7 @@ ORA-00933: SQL command not properly ended
 
 --※ 위의 내용은 RANK() OVER() 함수를 WHERE 조건절에서 사용한 경우이며
 --   이 함수는 WHERE 조건절에서 사용할 수 없기 때문에 발생하는 에러이다.
---   이 경우, 우리느 INLINE VIEW 를 활용하여 풀이해야 한다.
+--   이 경우, 우리는 INLINE VIEW 를 활용하여 풀이해야 한다.
 
 
 --○ EMP 테이블에서 각 부서별로 연봉 등수가 1등 부터 2등 까지만 조회한다.
@@ -1242,3 +1242,16 @@ ORA-00979: not a GROUP BY expression
 1,231행, 26열에서 오류 발생
 */
 
+SELECT TO_CHAR(HIREDATE, 'YYYY')"입사년도"
+     , COUNT(*)"인원수"
+FROM TBL_EMP
+GROUP BY ROLLUP(EXTRACT(YEAR FROM HIREDATE))
+ORDER BY 1;
+--==>> 에러 발생
+/*
+ORA-00979: not a GROUP BY expression
+00979. 00000 -  "not a GROUP BY expression"
+*Cause:    
+*Action:
+1,245행, 16열에서 오류 발생
+*/

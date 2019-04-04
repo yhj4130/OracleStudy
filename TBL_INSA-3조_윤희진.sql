@@ -553,13 +553,14 @@ WHERE CITY ='서울' AND BASICPAY>=2000000;
 --     월  인원수
 --    1월    10명
 --    2월    25명   
-SELECT TO_CHAR(IBSADATE, 'MM')"월", COUNT(*)"인원수"
+SELECT TO_CHAR(IBSADATE, 'MM')||'월'"월", COUNT(*)||'명'"인원수"
 FROM TBL_INSA
-GROUP BY TO_CHAR(IBSADATE, 'MM');
+GROUP BY TO_CHAR(IBSADATE, 'MM')
+ORDER BY 1;
 
 --55. 이름, 생년월일, 기본급, 수당을 조회.
-    생년월일은 주민번호 기준 (2000-10-10 형식으로 출력)
-    기본급은 \1,000,000 형식으로 출력
+--    생년월일은 주민번호 기준 (2000-10-10 형식으로 출력)
+--    기본급은 \1,000,000 형식으로 출력
 SELECT NAME"이름"
      , (SUBSTR(SSN, 1, 2) + 1900)||'-'||SUBSTR(SSN, 3, 2)||'-'||SUBSTR(SSN, 5, 2) "생년월일"
      , LTRIM(TO_CHAR(BASICPAY, 'L9,999,999'))"기본급"

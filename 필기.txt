@@ -375,7 +375,11 @@ ORDER BY 3, 4 DESC;
 
 
 
+< 2019.4.4 >
 
+20190403_02_hr.sql	°Ê ¡§±‘»≠
+
+20190404_01_hr.sql	°Ê PRIMARY KEY, FOREIGN KEY
 
 
 

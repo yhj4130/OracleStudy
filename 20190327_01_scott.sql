@@ -161,7 +161,7 @@ DEPT	        TABLE
 
 
 --○ 테이블 레벨의 커멘트 정보 입력 (TBL_DEPT → 부서정보)
-COMMENT ON TABLE TBL_DEPT IS '부서정보';
+COMMENT ON TABLE TBL_DEPT IS '부서정보'
 --==>> Comment이(가) 생성되었습니다.
 
 --○ 커멘트 정보 입력 후 다시 확인

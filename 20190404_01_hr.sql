@@ -878,3 +878,418 @@ HR	EMP3_JIKWI_FK	TBL_EMP3	R	JIKWI_ID		NO ACTION
 --    『ON DELETE SET NULL』 옵션을 사용하여 설정한 경우에는
 --    삭제가 가능하다.)
 --    부모 테이블을 제거하기 위해서는 자식 테이블을 먼저 제거해야 한다.
+
+-- 부모 테이블
+SELECT *
+FROM TBL_JOBS;
+--==>>
+/*
+1	사원
+2	대리
+3	과장
+4	부장
+*/
+
+-- 자식 테이블
+SELECT *
+FROM TBL_EMP1;
+--==>>
+/*
+1	조수연	1
+2	곽한얼	2
+3	이승희	3
+4	최은상	4
+5	권홍비	1
+6	윤희진	
+7	이기승	
+*/
+
+
+-- 최은상 부장의 직위를 사원으로 변경
+UPDATE TBL_EMP1
+SET JIKWI_ID = 1
+WHERE SID = 4;
+--==>> 1 행 이(가) 업데이트되었습니다.
+
+-- 확인
+SELECT *
+FROM TBL_EMP1;
+--==>>
+/*
+1	조수연	1
+2	곽한얼	2
+3	이승희	3
+4	최은상	1
+5	권홍비	1
+6	윤희진	
+7	이기승	
+*/
+
+--○ 커밋
+COMMIT;
+--==>> 커밋 완료.
+
+-- 부모테이블(TBL_JOBS)의 부장 데이터를 참조하고 있는
+-- 자식테이블(TBL_EMP1)의 데이터가 존재하지 않는 상황.
+
+-- 이와 같은 상황에서 부모테이블(TBL_JOBS)의
+-- 부장 데이터 삭제
+DELETE
+FROM TBL_JOBS
+WHERE JIKWI_ID = 4;
+--==>> 1 행 이(가) 삭제되었습니다.
+
+-- 확인
+SELECT *
+FROM TBL_JOBS;
+--==>>
+/*
+1	사원
+2	대리
+3	과장
+*/
+
+--○ 커밋
+COMMIT;
+--==>> 커밋 완료.
+
+-- 부모테이블(TBL_JOBS)의 사원 데이터를 참조하고 있는
+-- 자식테이블(TBL_EMP1)의 데이터가 3건 존재하는 상황.
+
+-- 이와 같은 상황에서 부모테이블(TBL_JOBS)의
+-- 사원 데이터 삭제
+DELETE
+FROM TBL_JOBS
+WHERE JIKWI_ID=1;
+--==>> 에러 발생
+/*
+명령의 961 행에서 시작하는 중 오류 발생 -
+DELETE
+FROM TBL_JOBS
+WHERE JIKWI_ID=1
+오류 보고 -
+ORA-02292: integrity constraint (HR.SYS_C007035) violated - child record found
+*/
+
+
+-- 부모 테이블(TBL_JOBS) 제거
+DROP TABLE TBL_JOBS;
+--==>> 에러 발생
+/*
+명령의 976 행에서 시작하는 중 오류 발생 -
+DROP TABLE TBL_JOBS
+오류 보고 -
+ORA-02449: unique/primary keys in table referenced by foreign keys
+02449. 00000 -  "unique/primary keys in table referenced by foreign keys"
+*Cause:    An attempt was made to drop a table with unique or
+           primary keys referenced by foreign keys in another table.
+*Action:   Before performing the above operations the table, drop the
+           foreign key constraints in other tables. You can see what
+           constraints are referencing a table by issuing the following
+           command:
+           SELECT * FROM USER_CONSTRAINTS WHERE TABLE_NAME = "tabnam";
+*/
+
+--※ 부모 테이블의 데이터를 자유롭게 삭제하기 위해서는
+--   『ON DELETE CASCADE』 옵션 지정이 필요하다.
+
+--   TBL_EMP1 테이블(자식테이블)에서 FK 제약조건을 제거한 후
+--   CASCADE 옵션을 포함하여 다시 FK 제약조건을 설정한다.
+
+--○ 제약조건 확인
+SELECT *
+FROM VIEW_CONSTCHECK
+WHERE TABLE_NAME = 'TBL_EMP1';
+--==>>
+/*
+HR	SYS_C007034	TBL_EMP1	P	SID		
+HR	SYS_C007035	TBL_EMP1	R	JIKWI_ID		NO ACTION
+*/
+
+
+--○ 제약조건 제거
+ALTER TABLE TBL_EMP1
+DROP CONSTRAINT SYS_C007035;
+--==>> Table TBL_EMP1이(가) 변경되었습니다.
+
+
+--○ 제약조건 제거 이후 다시 확인
+SELECT *
+FROM VIEW_CONSTCHECK
+WHERE TABLE_NAME = 'TBL_EMP1';
+--==>>
+/*
+HR	SYS_C007034	TBL_EMP1	P	SID		
+*/
+
+
+--○ 『ON DELETE CASCADE』 옵션이 포함된 내용으로 제약조건 재 지정
+ALTER TABLE TBL_EMP1
+ADD CONSTRAINT EMP1_JIKWIID_FK FOREIGN KEY(JIKWI_ID)
+                    REFERENCES TBL_JOBS(JIKWI_ID)
+                    ON DELETE CASCADE;
+--==>> Table TBL_EMP1이(가) 변경되었습니다.
+
+
+--○ 제약조건 재 지정 이후 다시 확인
+SELECT *
+FROM VIEW_CONSTCHECK
+WHERE TABLE_NAME = 'TBL_EMP1';
+--==>>
+/*
+HR	SYS_C007034	    TBL_EMP1	P	SID		
+HR	EMP1_JIKWIID_FK	TBL_EMP1	R	JIKWI_ID		CASCADE
+*/
+
+--> CASCADE 옵션을 지정한 후에는
+--  참조받고 있는 부모 테이블의 데이터를
+--  언제든지 자유롭게 삭제하는 것이 가능하다.
+--  단, 부모 테이블의 데이터가 삭제될 경우
+--  이를 참조하는 자식 테이블의 데이터도 모두 함께 삭제된다.
+--  CHECK!!!
+
+
+-- 부모 테이블
+SELECT *
+FROM TBL_JOBS;
+--==>>
+/*
+1	사원
+2	대리
+3	과장
+*/
+
+-- 자식 테이블
+SELECT *
+FROM TBL_EMP1;
+--==>>
+/*
+1	조수연	1   ←
+2	곽한얼	2
+3	이승희	3
+4	최은상	1   ←
+5	권홍비	1   ←
+6	윤희진	
+7	이기승	
+*/
+
+--○ TBL_JOBS(부모테이블)의 사원 데이터 삭제
+DELETE
+FROM TBL_JOBS
+WHERE JIKWI_ID=1;
+--==>> 1 행 이(가) 삭제되었습니다.
+
+-- 부모 테이블
+SELECT *
+FROM TBL_JOBS;
+--==>>
+/*
+2	대리
+3	과장
+*/
+
+-- 자식 테이블
+SELECT *
+FROM TBL_EMP1;
+--==>>
+/*
+2	곽한얼	2
+3	이승희	3
+6	윤희진	
+7	이기승	
+*/
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+--■■■ NOT NULL(NN:CK:C) ■■■--
+
+-- 1. 테이블에서 지정한 컬럼의 데이터가 NULL 을 갖지 못하도록 하는 제약조건
+
+-- 2. 형식 및 구조
+-- ① 컬럼 레벨의 형식  (→ 더 많이 쓰임, 보통 테이블레벨의형식 권장)
+-- 컬럼명 데이터타입 [COMSTRAINT CONSTRAINT명] NOT NULL  
+
+-- ② 테이블 레벨의 형식
+-- 컬럼명 데이터타입,
+-- 컬럼명 데이터타입,
+-- CONSTRAINT CONSTRAINT명 CHECK(컬럼명 IS NOT NULL)
+
+-- 3. 기존에 생성되어 있는 테이블에 NOT NULL 제약조건을 추가할 경우
+--    ADD 보다 MODIFY 절을 더 많이 사용한다.
+
+--    ALTER TABLE 테이블명 
+--    MODIFY 컬럼명 데이터타입 NOT NULL;
+
+-- 4. 기존 테이블에 데이터가 이미 들어있지 않은 컬럼(→ NULL 인 상태)을
+--    NOT NULL 제약조건을 갖게끔 수정하는 경우에는 에러 발생 한다.
+
+--○ NOT NULL 지정 실습(① 컬럼 레벨의 형식)
+-- 테이블 생성
+CREATE TABLE TBL_TEST11
+( COL1  NUMBER(5)       PRIMARY KEY
+, COL2  VARCHAR(30)     NOT NULL
+);
+--==>> Table TBL_TEST11이(가) 생성되었습니다.
+
+-- 데이터 입력
+INSERT INTO TBL_TEST11(COL1, COL2) VALUES(1, 'TEST');
+INSERT INTO TBL_TEST11(COL1, COL2) VALUES(2, 'ABCD');
+INSERT INTO TBL_TEST11(COL1, COL2) VALUES(3, NULL);     --> 에러 발생
+INSERT INTO TBL_TEST11(COL1) VALUES(4);                 --> 에러 발생
+
+SELECT *
+FROM TBL_TEST11;
+--==>>
+/*
+1	TEST
+2	ABCD
+*/
+
+COMMIT;
+--==>> 커밋 완료.
+
+
+-- 제약조건 확인
+SELECT *
+FROM VIEW_CONSTCHECK
+WHERE TABLE_NAME = 'TBL_TEST11';
+--==>>
+/*
+HR	SYS_C007041	TBL_TEST11	C	COL2	"COL2" IS NOT NULL	
+HR	SYS_C007042	TBL_TEST11	P	COL1		
+*/
+
+
+--○ NOT NULL 지정 실습(② 테이블 레벨의 형식)
+-- 테이블 생성
+CREATE TABLE TBL_TEST12
+( COL1  NUMBER(5)
+, COL2 VARCHAR(30)
+, CONSTRAINT TEST12_COL1_PK PRIMARY KEY(COL1)
+, CONSTRAINT TEST12_CON2_NN CHECK(COL2 IS NOT NULL)
+);
+--==>> Table TBL_TEST12이(가) 생성되었습니다.
+
+-- 제약조건 확인
+SELECT *
+FROM VIEW_CONSTCHECK
+WHERE TABLE_NAME = 'TBL_TEST12';
+--==>>
+/*
+HR	TEST12_CON2_NN	TBL_TEST12	C	COL2	COL2 IS NOT NULL	
+HR	TEST12_COL1_PK	TBL_TEST12	P	COL1		
+*/
+
+
+--○ NOT NULL 지정 실습(③ 테이블 생성 이후 제약조건 추가 → NN 제약조건 추가)
+CREATE TABLE TBL_TEST13
+( COL1  NUMBER(5)
+, COL2  VARCHAR(30)
+);
+--==>> Table TBL_TEST13이(가) 생성되었습니다.
+
+-- 제약조건 확인
+SELECT *
+FROM VIEW_CONSTCHECK
+WHERE TABLE_NAME = 'TBL_TEST13';
+--==>> 조회 결과 없음
+
+-- 제약조건 추가
+ALTER TABLE TBL_TEST13
+ADD (CONSTRAINT TEST13_COL1_PK PRIMARY KEY(COL1) 
+   , CONSTRAINT TEST13_COL2_NN CHECK(COL2 IS NOT NULL));
+--==>> Table TBL_TEST13이(가) 변경되었습니다.
+
+-- 제약조건 확인
+SELECT *
+FROM VIEW_CONSTCHECK
+WHERE TABLE_NAME = 'TBL_TEST13';
+--==>>
+/*
+HR	TEST13_COL1_PK	TBL_TEST13	P	COL1		
+HR	TEST13_COL2_NN	TBL_TEST13	C	COL2	COL2 IS NOT NULL	
+*/
+
+
+--※ NOT NULL 제약조건만 TBL_TEST13 테이블의 COL2 에 추가하는 경우
+--   다음과 같은 방법도 가능하다.
+ALTER TABLE TBL_TEST13
+MODIFY COL2 NOT NULL;
+--==>> Table TBL_TEST13이(가) 변경되었습니다.
+
+-- 컬럼 레벨에서 NOT NULL 제약조건을 지정한 테이블
+DESC TBL_TEST11;
+/*
+이름   널?       유형           
+---- -------- ------------ 
+COL1 NOT NULL NUMBER(5)    
+COL2 NOT NULL VARCHAR2(30) 
+*/
+--> DESC 를 통해 COL2 컬럼이 NOT NULL 인 정보가 확인되는 상황
+
+-- 테이블 레벨에서 NOT NULL 제약조건을 지정한 테이블
+DESC TBL_TEST12;
+--==>>
+/*
+이름   널?       유형           
+---- -------- ------------ 
+COL1 NOT NULL NUMBER(5)    
+COL2          VARCHAR2(30)      (→ 표시가 없기 때문에 컬럼 레벨에서 제약조건 지정 권장)
+*/
+--> DESC 를 통해 COL2 컬럼이 NOT NULL 인 정보가 확인되지 않는 상황
+
+-- 테이블 생성 이후 ADD 를 통해 NOT NULL 제약조건 추가하였으며
+-- 또한, MODIFY 절을 통해 NOT NULL 제약조건을 다시 추가한 테이블
+DESC TBL_TEST13;
+--==>>
+/*
+이름   널?       유형           
+---- -------- ------------ 
+COL1 NOT NULL NUMBER(5)    
+COL2 NOT NULL VARCHAR2(30) 
+*/
+--> DESC 를 통해 COL2 컬림이 NOT NULL 인 정보가 확인되는 상황
+
+
+-- 제약조건 확인 전용 뷰(VIEW) 조회
+SELECT *
+FROM VIEW_CONSTCHECK
+WHERE TABLE_NAME IN ('TBL_TEST11', 'TBL_TEST12', 'TBL_TEST13');
+--==>>
+/*
+HR	SYS_C007041	    TBL_TEST11	C	COL2	"COL2" IS NOT NULL	
+HR	SYS_C007042	    TBL_TEST11	P	COL1		
+HR	TEST12_CON2_NN	TBL_TEST12	C	COL2	COL2 IS NOT NULL	
+HR	TEST12_COL1_PK	TBL_TEST12	P	COL1		
+HR	TEST13_COL1_PK	TBL_TEST13	P	COL1		
+HR	TEST13_COL2_NN	TBL_TEST13	C	COL2	COL2 IS NOT NULL	
+HR	SYS_C007047	    TBL_TEST13	C	COL2	"COL2" IS NOT NULL	
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

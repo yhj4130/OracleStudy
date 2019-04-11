@@ -322,3 +322,5 @@ FROM TBL_출고;
 SELECT *
 FROM TBL_상품;
 --==>> C004	에이스	1700	0
+
+
